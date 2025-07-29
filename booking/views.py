@@ -62,20 +62,50 @@ class DestinationListView(View):
 
 
 class VehicleListView(View):
-    """Get all vehicles"""
-    
+    """Get vehicles with destination-specific pricing"""
+   
     def get(self, request):
         try:
-            vehicles = Vehicle.objects.all()
-            data = []
-            for vehicle in vehicles:
-                data.append({
-                    'id': vehicle.id,
-                    'type': vehicle.type,
-                    'type_display': vehicle.get_type_display(),
-                    'capacity': vehicle.capacity
-                })
-            return JsonResponse({ 'data': data ,'message': 'Vehicles fetched successfully','status':200})
+            destination_id = request.GET.get('destination_id')
+            
+            if not destination_id:
+                return JsonResponse({
+                    'data': [],
+                    'destination': None,
+                    'message': 'destination_id parameter is required',
+                    'status': 400
+                }, status=400)
+
+            pricing_queryset = VehicleDestinationPrice.objects.filter(
+                destination_id=destination_id
+            ).select_related('vehicle', 'destination')
+
+            vehicles_data = []
+            destination_info = None
+            
+            for pricing in pricing_queryset:
+                vehicle_info = {
+                    'id': pricing.vehicle.id,
+                    'type': pricing.vehicle.type,
+                    'capacity': pricing.vehicle.capacity,
+                    'price': float(pricing.price),
+                    'image_url': pricing.vehicle.image
+                }
+                vehicles_data.append(vehicle_info)
+                
+                if not destination_info:
+                    destination_info = {
+                        'id': pricing.destination.id,
+                        'name': pricing.destination.name
+                    }
+
+            return JsonResponse({
+                'data': vehicles_data,
+                'destination': destination_info,
+                'message': 'Vehicles fetched successfully',
+                'status': 200
+            })
+
         except Exception as e:
             return JsonResponse({'error': str(e),'message': 'Error fetching vehicles','status':500})
 
@@ -132,6 +162,15 @@ class TripDetailsView(View):
                 'status': 500
             }, status=500)
 
+            return JsonResponse({
+                'data': [],
+                'destination': None,
+                'message': str(e),
+                'status': 500
+            }, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class PriceDetailView(View):
     """Get prices for vehicle-destination combinations"""
     
