@@ -13,24 +13,33 @@ from customer.models import Customer
 
 @method_decorator(csrf_exempt, name='dispatch')
 class DestinationListView(View):
-    """Get all destinations"""
+    """View for handling destination operations"""
     
     def get(self, request):
+        """Get all destinations"""
         try:
             destinations = Destination.objects.all()
-            data = []
+            destinations_data = []
+            
             for destination in destinations:
-                data.append({
+                destinations_data.append({
                     'id': destination.id,
                     'name': destination.name,
-                    'distance': float(destination.distance),
-                    'duration': destination.duration,
-                    'latitude': float(destination.latitude),
-                    'longitude': float(destination.longitude)
+                    'description': destination.description,
+                    'image_url': destination.image  
                 })
-            return JsonResponse({'data': data,'message': 'Destinations fetched successfully','status':200})
+            
+            return JsonResponse({
+                'data': destinations_data,  
+                'message': 'Destinations fetched successfully', 
+                'status': 200  
+            })
+            
         except Exception as e:
-            return JsonResponse({'error': str(e),'message': 'Error fetching destinations','status':500})
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
