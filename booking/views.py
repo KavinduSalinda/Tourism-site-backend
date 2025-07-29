@@ -80,26 +80,62 @@ class VehicleListView(View):
             return JsonResponse({'error': str(e),'message': 'Error fetching vehicles','status':500})
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class PriceDetailView(View):
-    """Get specific vehicle-destination price by ID"""
+class TripDetailsView(View):
+    """Get trip details based on distance table"""
     
-    def get(self, request, price_id):
+    def get(self, request, booking_id=None):
         try:
-            price_obj = get_object_or_404(VehicleDestinationPrice.objects.select_related('vehicle', 'destination'), id=price_id)
+            if booking_id:
+                booking = get_object_or_404(Booking, id=booking_id)
+                trip_data = {
+                    'id': booking.destination.id,
+                    'name': booking.destination.name,
+                    'distance': float(booking.destination.distance) if booking.destination.distance else None,
+                    'duration': booking.destination.duration,
+                    'latitude': float(booking.destination.latitude) if booking.destination.latitude else None,
+                    'longitude': float(booking.destination.longitude) if booking.destination.longitude else None,
+                }
+                
+                return JsonResponse({
+                    'data': trip_data,
+                    'message': 'Trip Details fetched successfully',
+                    'status': 200
+                })
             
-            data = {
-                'id': price_obj.id,
-                'vehicle_id': price_obj.vehicle.id,
-                'vehicle_type': price_obj.vehicle.type,
-                'price': float(price_obj.price)
-            }
-            return JsonResponse({'data': data,'message': 'Price details fetched successfully','status':200})
+            else:
+                destination_id = request.GET.get('destination_id')
+                if not destination_id:
+                    return JsonResponse({
+                        'data': None,
+                        'message': 'destination_id parameter is required',
+                        'status': 400
+                    }, status=400)
+                
+                destination = get_object_or_404(Destination, id=destination_id)
+                destination_data = {
+                    'id': destination.id,
+                    'name': destination.name,
+                    'distance': float(destination.distance) if destination.distance else None,
+                    'duration': destination.duration,
+                    'latitude': float(destination.latitude) if destination.latitude else None,
+                    'longitude': float(destination.longitude) if destination.longitude else None,
+                }
+                
+                return JsonResponse({
+                    'data': destination_data,
+                    'message': 'Trip Details fetched successfully',
+                    'status': 200
+                })
+                
         except Exception as e:
-            return JsonResponse({'error': str(e),'message': 'Error fetching price details','status':500})
+            return JsonResponse({
+                'data': None,
+                'message': str(e),
+                'status': 500
+            }, status=500)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
