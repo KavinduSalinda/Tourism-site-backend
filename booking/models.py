@@ -8,6 +8,8 @@ class Destination(models.Model):
     duration = models.IntegerField(help_text="Duration in minutes")
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    description = models.TextField(null=True, blank=True)
+    image = models.URLField(null=True, blank=True)
     
     def __str__(self):
         return self.name
@@ -22,6 +24,7 @@ class Vehicle(models.Model):
     
     type = models.CharField(max_length=20, choices=VEHICLE_TYPES)
     capacity = models.IntegerField(help_text="Number of passengers")
+    image = models.URLField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.get_type_display()} - {self.capacity} passengers"
