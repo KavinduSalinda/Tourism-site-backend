@@ -79,9 +79,6 @@ class VehicleListView(View):
         except Exception as e:
             return JsonResponse({'error': str(e),'message': 'Error fetching vehicles','status':500})
 
-
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class TripDetailsView(View):
     """Get trip details based on distance table"""
@@ -104,7 +101,6 @@ class TripDetailsView(View):
                     'message': 'Trip Details fetched successfully',
                     'status': 200
                 })
-            
             else:
                 destination_id = request.GET.get('destination_id')
                 if not destination_id:
@@ -129,7 +125,6 @@ class TripDetailsView(View):
                     'message': 'Trip Details fetched successfully',
                     'status': 200
                 })
-                
         except Exception as e:
             return JsonResponse({
                 'data': None,
@@ -137,6 +132,51 @@ class TripDetailsView(View):
                 'status': 500
             }, status=500)
 
+class PriceDetailView(View):
+    """Get prices for vehicle-destination combinations"""
+    
+    def get(self, request):
+        try:
+            # Get query parameters
+            vehicle_id = request.GET.get('vehicle_id')
+            destination_id = request.GET.get('destination_id')
+            
+            # Start with all prices
+            prices = VehicleDestinationPrice.objects.select_related('vehicle', 'destination')
+            
+            # Filter by vehicle_id if provided
+            if vehicle_id:
+                try:
+                    vehicle_id = int(vehicle_id)
+                    prices = prices.filter(vehicle_id=vehicle_id)
+                except ValueError:
+                    return JsonResponse({'error': 'Invalid vehicle_id', 'message': 'vehicle_id must be a number', 'status': 400})
+            
+            # Filter by destination_id if provided
+            if destination_id:
+                try:
+                    destination_id = int(destination_id)
+                    prices = prices.filter(destination_id=destination_id)
+                except ValueError:
+                    return JsonResponse({'error': 'Invalid destination_id', 'message': 'destination_id must be a number', 'status': 400})
+            
+            data = []
+            for price_obj in prices:
+                data.append({
+                    'id': price_obj.id,
+                    'vehicle_id': price_obj.vehicle.id,
+                    'vehicle_type': price_obj.vehicle.get_type_display(),
+                    'destination_id': price_obj.destination.id,
+                    'destination_name': price_obj.destination.name,
+                    'price': float(price_obj.price)
+                })
+            
+            if not data:
+                return JsonResponse({'data': [], 'message': 'No prices found for the specified criteria', 'status': 404})
+            
+            return JsonResponse({'data': data, 'message': 'Prices fetched successfully', 'status': 200})
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'message': 'Error fetching prices', 'status': 500})
 
 @method_decorator(csrf_exempt, name='dispatch')
 class BookingCreateView(View):
