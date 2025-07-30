@@ -15,6 +15,8 @@ urlpatterns = [
     # Trip details endpoint
     path('api/trips/', views.TripDetailsView.as_view(), name='trip_details'),
 
+    # Price endpoints
+    path('api/prices/', views.PriceDetailView.as_view(), name='price_detail'),
     
     # Booking creation endpoint
     path('api/bookings/', views.BookingCreateView.as_view(), name='booking_create'),
