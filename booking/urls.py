@@ -7,6 +7,7 @@ from . import views
 urlpatterns = [
     # Destination endpoints
     path('api/destinations/', views.DestinationListView.as_view(), name='destination_list'),
+    path('api/destinations/<int:destination_id>/', views.DestinationListView.as_view(), name='destination_detail'),
     
     # Vehicle endpoints
     path('api/vehicles/', views.VehicleListView.as_view(), name='vehicle_list'),
