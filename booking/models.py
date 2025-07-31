@@ -9,7 +9,7 @@ class Destination(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     description = models.TextField(null=True, blank=True)
-    image = models.ImageField(upload_to='destination_images/')
+    image = models.ImageField(upload_to='destination_images/', null=True, blank=True)
     
     def __str__(self):
         return self.name
@@ -24,7 +24,7 @@ class Vehicle(models.Model):
     
     type = models.CharField(max_length=20, choices=VEHICLE_TYPES)
     capacity = models.IntegerField(help_text="Number of passengers")
-    image = models.ImageField(upload_to='vehicle_images/')
+    image = models.ImageField(upload_to='vehicle_images/', null=True, blank=True)
     
     def __str__(self):
         return f"{self.get_type_display()} - {self.capacity} passengers"
@@ -44,9 +44,9 @@ class VehicleDestinationPrice(models.Model):
 
 class Booking(models.Model):
     customer = models.ForeignKey('customer.Customer', on_delete=models.CASCADE)
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
-    destination = models.ForeignKey(Destination, on_delete=models.CASCADE)
-    vehicle_destination_price = models.ForeignKey(VehicleDestinationPrice, on_delete=models.CASCADE)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, null=True, blank=True)
+    destination = models.ForeignKey(Destination, on_delete=models.CASCADE, null=True, blank=True)
+    vehicle_destination_price = models.ForeignKey(VehicleDestinationPrice, on_delete=models.CASCADE, null=True, blank=True)
     no_of_passengers = models.IntegerField()
     pickup_location = models.CharField(max_length=200, null=True, blank=True)
     dropoff_location = models.CharField(max_length=200, null=True, blank=True)
@@ -57,4 +57,5 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Booking {self.id} - {self.customer} to {self.destination}"
+        destination_name = self.destination.name if self.destination else "No destination"
+        return f"Booking {self.id} - {self.customer} to {destination_name}"
