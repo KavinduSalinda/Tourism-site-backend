@@ -11,7 +11,7 @@ from .models import Destination, Vehicle, VehicleDestinationPrice, Booking
 from customer.models import Customer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class DestinationListView(View):
     """View for handling destination operations"""
     
@@ -60,7 +60,7 @@ class DestinationListView(View):
 
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class VehicleListView(View):
     """Get all vehicles"""
     
@@ -79,7 +79,7 @@ class VehicleListView(View):
         except Exception as e:
             return JsonResponse({'error': str(e),'message': 'Error fetching vehicles','status':500})
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class TripDetailsView(View):
     """Get trip details based on distance table"""
     
@@ -178,7 +178,7 @@ class PriceDetailView(View):
         except Exception as e:
             return JsonResponse({'error': str(e), 'message': 'Error fetching prices', 'status': 500})
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class BookingCreateView(View):
     """Create a new booking with customer"""
     
