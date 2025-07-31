@@ -8,7 +8,7 @@ import json
 from .models import Customer, Testimonial,Message
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class TestimonialListView(View):
     """Get all testimonials"""
     
@@ -30,7 +30,7 @@ class TestimonialListView(View):
             return JsonResponse({'error': str(e),'message': 'Error fetching testimonials','status':500})
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class ContactCreateView(View):
     """Create a new contact message"""
     
