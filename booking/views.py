@@ -25,7 +25,7 @@ class DestinationListView(View):
                     'id': destination.id,
                     'name': destination.name,
                     'description': destination.description,
-                    'image_url': destination.image
+                    'image_url': destination.image.url if destination.image else None
                 }
                 
                 return JsonResponse({
@@ -43,7 +43,7 @@ class DestinationListView(View):
                         'id': destination.id,
                         'name': destination.name,
                         'description': destination.description,
-                        'image_url': destination.image  
+                        'image_url': destination.image.url if destination.image else None
                     })
                 
                 return JsonResponse({
@@ -78,7 +78,7 @@ class VehicleListView(View):
                         'type': vehicle.type,
                         'type_display': vehicle.get_type_display(),
                         'capacity': vehicle.capacity,
-                        'image_url': vehicle.image
+                        'image': vehicle.image.url if vehicle.image else None,
                     }
                     vehicles_data.append(vehicle_info)
 
@@ -130,6 +130,13 @@ class TripDetailsView(View):
         try:
             if booking_id:
                 booking = get_object_or_404(Booking, id=booking_id)
+                if not booking.destination:
+                    return JsonResponse({
+                        'data': None,
+                        'message': 'No destination associated with this booking',
+                        'status': 404
+                    }, status=404)
+                
                 trip_data = {
                     'id': booking.destination.id,
                     'name': booking.destination.name,
