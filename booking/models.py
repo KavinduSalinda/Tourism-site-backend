@@ -9,7 +9,7 @@ class Destination(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     description = models.TextField(null=True, blank=True)
-    image = models.URLField(null=True, blank=True)
+    image = models.ImageField(upload_to='destination_images/')
     
     def __str__(self):
         return self.name
@@ -24,7 +24,7 @@ class Vehicle(models.Model):
     
     type = models.CharField(max_length=20, choices=VEHICLE_TYPES)
     capacity = models.IntegerField(help_text="Number of passengers")
-    image = models.URLField(null=True, blank=True)
+    image = models.ImageField(upload_to='vehicle_images/')
     
     def __str__(self):
         return f"{self.get_type_display()} - {self.capacity} passengers"
@@ -48,6 +48,8 @@ class Booking(models.Model):
     destination = models.ForeignKey(Destination, on_delete=models.CASCADE)
     vehicle_destination_price = models.ForeignKey(VehicleDestinationPrice, on_delete=models.CASCADE)
     no_of_passengers = models.IntegerField()
+    pickup_location = models.CharField(max_length=200, null=True, blank=True)
+    dropoff_location = models.CharField(max_length=200, null=True, blank=True)
     pickup_date = models.DateField()
     pickup_time = models.TimeField()
     additional_info = models.TextField(blank=True)

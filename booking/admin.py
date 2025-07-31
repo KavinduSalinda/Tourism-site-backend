@@ -4,16 +4,16 @@ from .models import Destination, Vehicle, VehicleDestinationPrice, Booking
 
 @admin.register(Destination)
 class DestinationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'distance', 'duration', 'latitude', 'longitude']
+    list_display = ['name', 'distance', 'duration', 'latitude', 'longitude', 'image']
     search_fields = ['name']
     list_filter = ['duration']
     ordering = ['name']
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'distance', 'duration')
+            'fields': ('name', 'distance', 'duration', 'image')
         }),
         ('Location', {
-            'fields': ('latitude', 'longitude')
+            'fields': ('latitude', 'longitude',)
         }),
     )
 
@@ -40,7 +40,7 @@ class VehicleDestinationPriceAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'vehicle_type_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time', 'is_return_trip', 'created_at']
+    list_display = ['id', 'customer_name', 'vehicle_type_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'created_at']
     list_filter = ['is_return_trip', 'created_at', 'vehicle', 'destination', 'pickup_date']
     search_fields = ['customer__first_name', 'customer__last_name', 'customer__email']
     readonly_fields = ['created_at']
@@ -51,9 +51,16 @@ class BookingAdmin(admin.ModelAdmin):
     customer_name.short_description = 'Customer'
     
     def vehicle_type_and_price(self, obj):
-        return f"{obj.vehicle.get_type_display()} - ${obj.vehicle_destination_price.price}"
+        if obj.vehicle and obj.vehicle_destination_price:
+            return f"{obj.vehicle.get_type_display()} - ${obj.vehicle_destination_price.price}"
+        elif obj.vehicle:
+            return f"{obj.vehicle.get_type_display()} - No price set"
+        else:
+            return "No vehicle selected"
     vehicle_type_and_price.short_description = 'Vehicle and Price'
     
     def destination_name(self, obj):
-        return obj.destination.name
+        if obj.destination:
+            return obj.destination.name
+        return "No destination selected"
     destination_name.short_description = 'Destination'
