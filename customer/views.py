@@ -21,7 +21,7 @@ class TestimonialListView(View):
                     'id': testimonial.id,
                     'customer_name': testimonial.customer_name,
                     'country': testimonial.country,
-                    'profile_icon': testimonial.profile_icon,
+                    'profile_icon': testimonial.profile_icon.url if testimonial.profile_icon else None,
                     'review': testimonial.review,
                     'created_at': testimonial.created_at.isoformat()
                 })

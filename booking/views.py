@@ -238,26 +238,40 @@ class BookingCreateView(View):
             data = json.loads(request.body)
             
             # Validate required fields for customer
-            customer_fields = ['first_name', 'last_name', 'email', 'phone_no', 'country']
-            for field in customer_fields:
+            customer_required_fields = ['first_name', 'last_name', 'email']
+            for field in customer_required_fields:
                 if field not in data or not data[field]:
                     return JsonResponse({'error': f'{field} is required','message': f'{field} is required','status':400})
             
             # Validate required fields for booking
-            booking_fields = ['vehicle_id', 'destination_id', 'no_of_passengers', 'pickup_date', 'pickup_time']
-            for field in booking_fields:
+            booking_required_fields = ['no_of_passengers', 'pickup_date', 'pickup_time']
+            for field in booking_required_fields:
                 if field not in data or not data[field]:
                     return JsonResponse({'error': f'{field} is required','message': f'{field} is required','status':400})
             
-            # Get related objects
-            vehicle = get_object_or_404(Vehicle, id=data['vehicle_id'])
-            destination = get_object_or_404(Destination, id=data['destination_id'])
+            # Handle optional vehicle_id
+            vehicle = None
+            if 'vehicle_id' in data and data['vehicle_id']:
+                try:
+                    vehicle = get_object_or_404(Vehicle, id=data['vehicle_id'])
+                except (ValueError, Vehicle.DoesNotExist):
+                    return JsonResponse({'error': 'Invalid vehicle_id','message': 'Invalid vehicle_id','status':400})
             
-            # Get price
-            try:
-                price_obj = VehicleDestinationPrice.objects.get(vehicle=vehicle, destination=destination)
-            except VehicleDestinationPrice.DoesNotExist:
-                return JsonResponse({'error': 'Price not available for this combination','message': 'Price not available for this combination','status':400})
+            # Handle optional destination_id
+            destination = None
+            if 'destination_id' in data and data['destination_id']:
+                try:
+                    destination = get_object_or_404(Destination, id=data['destination_id'])
+                except (ValueError, Destination.DoesNotExist):
+                    return JsonResponse({'error': 'Invalid destination_id','message': 'Invalid destination_id','status':400})
+            
+            # Get price only if both vehicle and destination are provided
+            price_obj = None
+            if vehicle and destination:
+                try:
+                    price_obj = VehicleDestinationPrice.objects.get(vehicle=vehicle, destination=destination)
+                except VehicleDestinationPrice.DoesNotExist:
+                    return JsonResponse({'error': 'Price not available for this combination','message': 'Price not available for this combination','status':400})
             
             # Parse pickup_date
             try:
@@ -271,28 +285,38 @@ class BookingCreateView(View):
             except ValueError:
                 return JsonResponse({'error': 'Invalid pickup_time format. Use ISO format (HH:MM:SS)','message': 'Invalid pickup_time format','status':400})
             
-            # Create customer
-            customer = Customer.objects.create(
-                first_name=data['first_name'],
-                last_name=data['last_name'],
-                email=data['email'],
-                phone_no=data['phone_no'],
-                country=data['country'],
-                message=data.get('message', '')
-            )
+            # Create customer with optional fields
+            customer_data = {
+                'first_name': data['first_name'],
+                'last_name': data['last_name'],
+                'email': data['email'],
+                'phone_no': data.get('phone_no', ''),  # Optional
+                'country': data.get('country', ''),     # Optional
+                'message': data.get('message', '')
+            }
+            customer = Customer.objects.create(**customer_data)
             
-            # Create booking
-            booking = Booking.objects.create(
-                customer=customer,
-                vehicle=vehicle,
-                destination=destination,
-                vehicle_destination_price=price_obj,
-                no_of_passengers=data['no_of_passengers'],
-                pickup_date=pickup_date,
-                pickup_time=pickup_time,
-                additional_info=data.get('additional_info', ''),
-                is_return_trip=data.get('is_return_trip', False)
-            )
+            # Create booking with optional fields
+            booking_data = {
+                'customer': customer,
+                'no_of_passengers': data['no_of_passengers'],
+                'pickup_date': pickup_date,
+                'pickup_time': pickup_time,
+                'pickup_location': data.get('pickup_location', ''),
+                'dropoff_location': data.get('dropoff_location', ''),
+                'additional_info': data.get('additional_info', ''),
+                'is_return_trip': data.get('is_return_trip', False)
+            }
+            
+            # Add vehicle and destination if provided
+            if vehicle:
+                booking_data['vehicle'] = vehicle
+            if destination:
+                booking_data['destination'] = destination
+            if price_obj:
+                booking_data['vehicle_destination_price'] = price_obj
+            
+            booking = Booking.objects.create(**booking_data)
             
             return JsonResponse({'message': 'Booking created successfully','status':201})
         except json.JSONDecodeError:
