@@ -62,19 +62,32 @@ class DestinationListView(View):
 
 
 class VehicleListView(View):
-    """Get vehicles with destination-specific pricing"""
+    """Get vehicles with destination-specific pricing or all vehicles if no destination_id provided"""
    
     def get(self, request):
         try:
             destination_id = request.GET.get('destination_id')
             
             if not destination_id:
+                vehicles = Vehicle.objects.all()
+                vehicles_data = []
+                
+                for vehicle in vehicles:
+                    vehicle_info = {
+                        'id': vehicle.id,
+                        'type': vehicle.type,
+                        'type_display': vehicle.get_type_display(),
+                        'capacity': vehicle.capacity,
+                        'image_url': vehicle.image
+                    }
+                    vehicles_data.append(vehicle_info)
+
                 return JsonResponse({
-                    'data': [],
+                    'data': vehicles_data,
                     'destination': None,
-                    'message': 'destination_id parameter is required',
-                    'status': 400
-                }, status=400)
+                    'message': 'All vehicles fetched successfully',
+                    'status': 200
+                })
 
             pricing_queryset = VehicleDestinationPrice.objects.filter(
                 destination_id=destination_id
@@ -168,7 +181,6 @@ class TripDetailsView(View):
                 'message': str(e),
                 'status': 500
             }, status=500)
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PriceDetailView(View):
@@ -288,4 +300,12 @@ class BookingCreateView(View):
         except Exception as e:
             return JsonResponse({'error': str(e),'message': 'Error creating booking','status':500})
 
-
+class GetAllVehiclesView(View):
+    """Get all vehicles"""
+    
+    def get(self, request):
+        try:
+            vehicles = Vehicle.objects.all()
+            return JsonResponse({'data': vehicles, 'message': 'Vehicles fetched successfully', 'status': 200})
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'message': 'Error fetching vehicles', 'status': 500})
