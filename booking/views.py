@@ -43,7 +43,11 @@ class DestinationListView(View):
                         'id': destination.id,
                         'name': destination.name,
                         'description': destination.description,
-                        'image_url': destination.image.url if destination.image else None
+                        'image_url': destination.image.url if destination.image else None,
+                        'distance': destination.distance,
+                        'duration': destination.duration,
+                        'latitude': destination.latitude,
+                        'longitude': destination.longitude
                     })
                 
                 return JsonResponse({
