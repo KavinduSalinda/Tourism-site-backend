@@ -299,13 +299,3 @@ class BookingCreateView(View):
             return JsonResponse({'error': 'Invalid JSON','message': 'Invalid JSON','status':400})
         except Exception as e:
             return JsonResponse({'error': str(e),'message': 'Error creating booking','status':500})
-
-class GetAllVehiclesView(View):
-    """Get all vehicles"""
-    
-    def get(self, request):
-        try:
-            vehicles = Vehicle.objects.all()
-            return JsonResponse({'data': vehicles, 'message': 'Vehicles fetched successfully', 'status': 200})
-        except Exception as e:
-            return JsonResponse({'error': str(e), 'message': 'Error fetching vehicles', 'status': 500})
