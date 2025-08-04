@@ -40,15 +40,23 @@ class VehicleDestinationPriceAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'vehicle_type_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'created_at']
+    list_display = ['id', 'customer_name', 'customer_email', 'customer_phone', 'vehicle_type_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'created_at']
     list_filter = ['is_return_trip', 'created_at', 'vehicle', 'destination', 'pickup_date']
-    search_fields = ['customer__first_name', 'customer__last_name', 'customer__email']
+    search_fields = ['customer__first_name', 'customer__last_name', 'customer__email', 'customer__phone_no']
     readonly_fields = ['created_at']
     ordering = ['-created_at']
     
     def customer_name(self, obj):
         return f"{obj.customer.first_name} {obj.customer.last_name}"
     customer_name.short_description = 'Customer'
+    
+    def customer_email(self, obj):
+        return obj.customer.email
+    customer_email.short_description = 'Email'
+    
+    def customer_phone(self, obj):
+        return obj.customer.phone_no if obj.customer.phone_no else "No phone"
+    customer_phone.short_description = 'Phone'
     
     def vehicle_type_and_price(self, obj):
         if obj.vehicle and obj.vehicle_destination_price:
