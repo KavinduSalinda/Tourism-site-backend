@@ -3,13 +3,13 @@ from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_http_methods
-from django.utils import timezone
-from datetime import datetime, date, time
+from datetime import date, time
 import json
-from .models import Destination, Vehicle, VehicleDestinationPrice, Booking
+from decouple import config
+from booking.models import Destination, Vehicle, VehicleDestinationPrice, Booking
 from customer.models import Customer
-
+from utils.email import send_email
+from django.conf import settings
 
 
 class DestinationListView(View):
@@ -43,7 +43,12 @@ class DestinationListView(View):
                         'id': destination.id,
                         'name': destination.name,
                         'description': destination.description,
-                        'image_url': destination.image.url if destination.image else None
+                        'image_url': destination.image.url if destination.image else None,
+                        'distance': destination.distance,
+                        'duration': destination.duration,
+                        'latitude': destination.latitude,
+                        'longitude': destination.longitude
+                    
                     })
                 
                 return JsonResponse({
@@ -324,7 +329,23 @@ class BookingCreateView(View):
                 booking_data['vehicle_destination_price'] = price_obj
             
             booking = Booking.objects.create(**booking_data)
-            
+
+            # Send email to admin
+            recipients = [(settings.ADMIN_EMAIL, "Admin")]
+            params = {
+                "user_name": booking.customer.first_name + ' ' + booking.customer.last_name,
+                "destination": booking.destination.name if booking.destination else 'Not specified',
+                "vehicle": booking.vehicle.type if booking.vehicle else 'Not specified',
+                "pickup_date": str(booking.pickup_date),
+                "pickup_time": str(booking.pickup_time),
+                "no_of_passengers": booking.no_of_passengers,
+                "price": booking.vehicle_destination_price.price if booking.vehicle_destination_price else 'Not specified',
+                "customer": booking.customer.first_name + ' ' + booking.customer.last_name,
+            }
+
+            # send email to admin
+            send_email(template_id=2, recipients=recipients, params=params)
+
             return JsonResponse({'message': 'Booking created successfully','status':201})
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON','message': 'Invalid JSON','status':400})
