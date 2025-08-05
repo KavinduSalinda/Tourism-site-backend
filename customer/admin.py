@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Customer, Testimonial,Message
 
 
@@ -7,8 +8,10 @@ from .models import Customer, Testimonial,Message
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'email', 'phone_no', 'country', 'created_at']
     search_fields = ['first_name', 'last_name', 'email']
-    list_filter = ['country']
+    list_filter = ['country', 'created_at']
     ordering = ['first_name', 'last_name']
+    list_per_page = 25
+    date_hierarchy = 'created_at'
     fieldsets = (
         ('Personal Information', {
             'fields': ('first_name', 'last_name', 'email', 'phone_no', 'country')
@@ -31,10 +34,12 @@ class MessageAdmin(admin.ModelAdmin):
 
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
-    list_display = ['customer_name', 'country', 'review_preview', 'created_at']
+    list_display = ['customer_name', 'country', 'profile_icon_preview', 'review_preview', 'created_at']
     search_fields = ['customer_name', 'country', 'review']
     list_filter = ['country', 'created_at']
     ordering = ['-created_at']
+    list_per_page = 20
+    date_hierarchy = 'created_at'
     fieldsets = (
         ('Customer Information', {
             'fields': ('customer_name', 'country', 'profile_icon')
@@ -43,6 +48,12 @@ class TestimonialAdmin(admin.ModelAdmin):
             'fields': ('review',)
         }),
     )
+    
+    def profile_icon_preview(self, obj):
+        if obj.profile_icon:
+            return format_html('<img src="{}" style="max-height: 40px; max-width: 40px; border-radius: 50%;" />', obj.profile_icon.url)
+        return "No icon"
+    profile_icon_preview.short_description = 'Profile Icon'
     
     def review_preview(self, obj):
         return obj.review[:50] + '...' if len(obj.review) > 50 else obj.review

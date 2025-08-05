@@ -1,13 +1,15 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Destination, Vehicle, VehicleDestinationPrice, Booking
 
 
 @admin.register(Destination)
 class DestinationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'distance', 'duration', 'latitude', 'longitude', 'image']
+    list_display = ['name', 'distance', 'duration', 'latitude', 'longitude', 'image_preview']
     search_fields = ['name']
     list_filter = ['duration']
     ordering = ['name']
+    list_per_page = 20
     fieldsets = (
         ('Basic Information', {
             'fields': ('name', 'distance', 'duration', 'image')
@@ -16,14 +18,27 @@ class DestinationAdmin(admin.ModelAdmin):
             'fields': ('latitude', 'longitude',)
         }),
     )
+    
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 50px; max-width: 50px;" />', obj.image.url)
+        return "No image"
+    image_preview.short_description = 'Image'
 
 
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
-    list_display = ['name', 'capacity']
+    list_display = ['name', 'capacity', 'image_preview']
     list_filter = ['capacity']
     ordering = ['name']
     search_fields = ['name']
+    list_per_page = 20
+    
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 50px; max-width: 50px;" />', obj.image.url)
+        return "No image"
+    image_preview.short_description = 'Image'
 
 
 @admin.register(VehicleDestinationPrice)
@@ -45,6 +60,8 @@ class BookingAdmin(admin.ModelAdmin):
     search_fields = ['customer__first_name', 'customer__last_name', 'customer__email', 'customer__phone_no']
     readonly_fields = ['created_at']
     ordering = ['-created_at']
+    list_per_page = 25
+    date_hierarchy = 'created_at'
     fieldsets = (
         ('Customer Information', {
             'fields': ('customer', 'no_of_passengers')
