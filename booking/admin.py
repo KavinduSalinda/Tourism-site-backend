@@ -40,11 +40,26 @@ class VehicleDestinationPriceAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name','customer_email', 'customer_phone', 'vehicle_type_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'created_at']
-    list_filter = ['is_return_trip', 'created_at', 'vehicle', 'destination', 'pickup_date']
-    search_fields = ['customer__first_name', 'customer__last_name', 'customer__email']
+    list_display = ['id', 'customer_name', 'customer_email', 'customer_phone', 'vehicle_name_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'status', 'created_at']
+    list_filter = ['is_return_trip', 'created_at', 'vehicle', 'destination', 'pickup_date', 'status']
+    search_fields = ['customer__first_name', 'customer__last_name', 'customer__email', 'customer__phone_no']
     readonly_fields = ['created_at']
     ordering = ['-created_at']
+    fieldsets = (
+        ('Customer Information', {
+            'fields': ('customer', 'no_of_passengers')
+        }),
+        ('Trip Details', {
+            'fields': ('vehicle', 'destination', 'vehicle_destination_price', 'pickup_location', 'dropoff_location', 'pickup_date', 'pickup_time', 'is_return_trip')
+        }),
+        ('Additional Information', {
+            'fields': ('additional_info', 'status')
+        }),
+        ('System Information', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
     
     def customer_name(self, obj):
         return f"{obj.customer.first_name} {obj.customer.last_name}"
