@@ -80,8 +80,7 @@ class VehicleListView(View):
                 for vehicle in vehicles:
                     vehicle_info = {
                         'id': vehicle.id,
-                        'type': vehicle.type,
-                        'type_display': vehicle.get_type_display(),
+                        'name': vehicle.name,
                         'capacity': vehicle.capacity,
                         'image': vehicle.image.url if vehicle.image else None,
                     }
@@ -104,7 +103,7 @@ class VehicleListView(View):
             for pricing in pricing_queryset:
                 vehicle_info = {
                     'id': pricing.vehicle.id,
-                    'type': pricing.vehicle.type,
+                    'name': pricing.vehicle.name,
                     'capacity': pricing.vehicle.capacity,
                     'price': float(pricing.price),
                     'image_url': pricing.vehicle.image
@@ -228,7 +227,7 @@ class PriceDetailView(View):
                 data.append({
                     'id': price_obj.id,
                     'vehicle_id': price_obj.vehicle.id,
-                    'vehicle_type': price_obj.vehicle.get_type_display(),
+                    'vehicle_name': price_obj.vehicle.name,
                     'destination_id': price_obj.destination.id,
                     'destination_name': price_obj.destination.name,
                     'price': float(price_obj.price)

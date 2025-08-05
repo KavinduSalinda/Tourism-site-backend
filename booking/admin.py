@@ -20,27 +20,27 @@ class DestinationAdmin(admin.ModelAdmin):
 
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
-    list_display = ['type', 'capacity']
-    list_filter = ['type']
-    ordering = ['type']
-    search_fields = ['type']
+    list_display = ['name', 'capacity']
+    list_filter = ['capacity']
+    ordering = ['name']
+    search_fields = ['name']
 
 
 @admin.register(VehicleDestinationPrice)
 class VehicleDestinationPriceAdmin(admin.ModelAdmin):
-    list_display = ['get_vehicle_type_and_price', 'destination']
+    list_display = ['get_vehicle_name_and_price', 'destination']
     list_filter = ['vehicle', 'destination']
-    search_fields = ['vehicle__type', 'destination__name']
+    search_fields = ['vehicle__name', 'destination__name']
     ordering = ['vehicle', 'destination']
     
-    def get_vehicle_type_and_price(self, obj):
-        return f"{obj.vehicle.get_type_display()} - ${obj.price}"
-    get_vehicle_type_and_price.short_description = 'Vehicle and Price'
+    def get_vehicle_name_and_price(self, obj):
+        return f"{obj.vehicle.name} - ${obj.price}"
+    get_vehicle_name_and_price.short_description = 'Vehicle and Price'
     
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'vehicle_type_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'created_at']
+    list_display = ['id', 'customer_name','customer_email', 'customer_phone', 'vehicle_type_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'created_at']
     list_filter = ['is_return_trip', 'created_at', 'vehicle', 'destination', 'pickup_date']
     search_fields = ['customer__first_name', 'customer__last_name', 'customer__email']
     readonly_fields = ['created_at']
@@ -50,14 +50,14 @@ class BookingAdmin(admin.ModelAdmin):
         return f"{obj.customer.first_name} {obj.customer.last_name}"
     customer_name.short_description = 'Customer'
     
-    def vehicle_type_and_price(self, obj):
+    def vehicle_name_and_price(self, obj):
         if obj.vehicle and obj.vehicle_destination_price:
-            return f"{obj.vehicle.get_type_display()} - ${obj.vehicle_destination_price.price}"
+            return f"{obj.vehicle.name} - ${obj.vehicle_destination_price.price}"
         elif obj.vehicle:
-            return f"{obj.vehicle.get_type_display()} - No price set"
+            return f"{obj.vehicle.name} - No price set"
         else:
             return "No vehicle selected"
-    vehicle_type_and_price.short_description = 'Vehicle and Price'
+    vehicle_name_and_price.short_description = 'Vehicle and Price'
     
     def destination_name(self, obj):
         if obj.destination:
