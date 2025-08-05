@@ -16,7 +16,7 @@ class Destination(models.Model):
 
 
 class Vehicle(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, null=True, blank=True)
     capacity = models.IntegerField(help_text="Number of passengers")
     image = models.ImageField(upload_to='vehicle_images/', null=True, blank=True)
     
@@ -37,6 +37,12 @@ class VehicleDestinationPrice(models.Model):
 
 
 class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('Todo', 'Todo'),
+        ('Confirm', 'Confirm'),
+        ('Done', 'Done'),
+    ]
+    
     customer = models.ForeignKey('customer.Customer', on_delete=models.CASCADE)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, null=True, blank=True)
     destination = models.ForeignKey(Destination, on_delete=models.CASCADE, null=True, blank=True)
@@ -48,6 +54,7 @@ class Booking(models.Model):
     pickup_time = models.TimeField()
     additional_info = models.TextField(blank=True)
     is_return_trip = models.BooleanField(default=False)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Todo')
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
