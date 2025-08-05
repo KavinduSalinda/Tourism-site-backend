@@ -16,18 +16,12 @@ class Destination(models.Model):
 
 
 class Vehicle(models.Model):
-    VEHICLE_TYPES = [
-        ('sedan', 'Sedan'),
-        ('wagon R', 'Wagon R'),
-        ('van', 'Van'),
-    ]
-    
-    type = models.CharField(max_length=20, choices=VEHICLE_TYPES)
+    name = models.CharField(max_length=100, unique=True)
     capacity = models.IntegerField(help_text="Number of passengers")
     image = models.ImageField(upload_to='vehicle_images/', null=True, blank=True)
     
     def __str__(self):
-        return f"{self.get_type_display()} - {self.capacity} passengers"
+        return f"{self.name} - {self.capacity} passengers"
 
 
 class VehicleDestinationPrice(models.Model):
