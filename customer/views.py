@@ -6,7 +6,8 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 import json
 from .models import Customer, Testimonial,Message
-
+from django.conf import settings
+from utils.email import send_email
 
 
 class TestimonialListView(View):
@@ -56,6 +57,16 @@ class ContactCreateView(View):
                 customer=customer,
                 message=data['message']
             )
+
+            # send email to admin
+            recipients = [(settings.ADMIN_EMAIL, "Admin")]
+            params = {
+                "user_name": customer.first_name + ' ' + customer.last_name,
+                "message": data['message'],
+                "email": customer.email if customer.email else 'Not specified',
+                "phone_no": customer.phone_no if customer.phone_no else 'Not specified',
+            }
+            send_email(template_id=3, recipients=recipients, params=params)
             
             return JsonResponse({'message': 'Contact message created successfully','status':201})
         except json.JSONDecodeError:

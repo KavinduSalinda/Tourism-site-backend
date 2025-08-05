@@ -74,6 +74,9 @@ CORS_ALLOW_METHODS = [
 
 ROOT_URLCONF = 'vehicle_booking_site.urls'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -150,3 +153,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email Configuration
+SEND_EMAIL = config('SEND_EMAIL', default=False, cast=bool)
+SENDINBLUE_API_KEY = config('SENDINBLUE_API_KEY', default='')
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='kavindu10int@gmail.com')
