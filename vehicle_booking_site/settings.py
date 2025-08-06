@@ -156,9 +156,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email Configuration
-SEND_EMAIL = config('SEND_EMAIL', default=False, cast=bool)
+SEND_EMAIL = config('SEND_EMAIL', default=True, cast=bool)
 SENDINBLUE_API_KEY = config('SENDINBLUE_API_KEY', default='')
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='kavindu10int@gmail.com')
+BREVO_CONTACT_LIST_ID = config('BREVO_CONTACT_LIST_ID', default=1)
+SITE_URL = config('SITE_URL',)
 
 # Jazzmin Configuration
 JAZZMIN_SETTINGS = {

@@ -11,4 +11,6 @@ urlpatterns = [
 
     #newsletter endpoints
     path('api/newsletter/', views.NewsletterCreateView.as_view(), name='newsletter_create'),
+    path('api/newsletter/verify/<uuid:token>/', views.NewsletterVerifyView.as_view(), name='newsletter_verify'),
+    path('api/newsletter/unsubscribe/', views.NewsletterUnsubscribeView.as_view(), name='newsletter_unsubscribe'),
 ] 
