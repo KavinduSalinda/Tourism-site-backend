@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 import json
-from .models import Customer, Testimonial,Message
+from .models import Customer, Testimonial,Message,Newsletter
 from django.conf import settings
 from utils.email import send_email
 
@@ -75,4 +75,25 @@ class ContactCreateView(View):
             return JsonResponse({'error': str(e),'message': 'Error creating contact message','status':500})
 
 
+class NewsletterCreateView(View):
+    """Create a new newsletter subscription"""
+    
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            if not email:
+                return JsonResponse({'error': 'Email is required','message': 'Email is required','status':400}) 
 
+            # Check if email already exists
+            if Newsletter.objects.filter(email=email).exists():
+                return JsonResponse({'message': 'Email already subscribed','status':200})
+            
+            # Create newsletter subscription
+            Newsletter.objects.create(email=email)
+            
+            return JsonResponse({'message': 'Newsletter subscription created successfully','status':201})
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON','message': 'Invalid JSON','status':400})
+        except Exception as e:
+            return JsonResponse({'error': str(e),'message': 'Error creating newsletter subscription','status':500})
