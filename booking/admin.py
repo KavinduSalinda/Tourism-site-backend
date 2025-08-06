@@ -96,3 +96,11 @@ class BookingAdmin(admin.ModelAdmin):
             return obj.destination.name
         return "No destination selected"
     destination_name.short_description = 'Destination'
+    
+    def customer_email(self, obj):
+        return obj.customer.email if obj.customer else "No customer"
+    customer_email.short_description = 'Customer Email'
+    
+    def customer_phone(self, obj):
+        return obj.customer.phone_no if obj.customer else "No phone"
+    customer_phone.short_description = 'Customer Phone'
