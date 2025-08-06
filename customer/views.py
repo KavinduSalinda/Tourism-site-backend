@@ -8,6 +8,7 @@ import json
 from .models import Customer, Testimonial,Message,Newsletter
 from django.conf import settings
 from utils.email import send_email
+from utils.brevo_contacts import add_contact_to_brevo, update_contact_in_brevo
 
 
 class TestimonialListView(View):
@@ -86,14 +87,111 @@ class NewsletterCreateView(View):
                 return JsonResponse({'error': 'Email is required','message': 'Email is required','status':400}) 
 
             # Check if email already exists
-            if Newsletter.objects.filter(email=email).exists():
-                return JsonResponse({'message': 'Email already subscribed','status':200})
+            newsletter, created = Newsletter.objects.get_or_create(email=email)
             
-            # Create newsletter subscription
-            Newsletter.objects.create(email=email)
+            if not created and newsletter.is_verified:
+                return JsonResponse({'message': 'Email already subscribed and verified','status':200})
             
-            return JsonResponse({'message': 'Newsletter subscription created successfully','status':201})
+            if not created and not newsletter.is_verified:
+                # Resend verification email
+                self._send_verification_email(newsletter)
+                return JsonResponse({'message': 'Verification email sent again','status':200})
+            
+            # Send verification email for new subscription
+            self._send_verification_email(newsletter)
+            
+            return JsonResponse({'message': 'Newsletter subscription created successfully. Please check your email for verification.','status':201})
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON','message': 'Invalid JSON','status':400})
         except Exception as e:
             return JsonResponse({'error': str(e),'message': 'Error creating newsletter subscription','status':500})
+    
+    def _send_verification_email(self, newsletter):
+        """Send verification email to newsletter subscriber"""
+        try:
+            # Generate verification URL
+            verification_url = f"{settings.SITE_URL}/api/newsletter/verify/{newsletter.verification_token}"
+            
+            # Send verification email
+            recipients = [(newsletter.email, "Newsletter Subscriber")]
+            params = {
+                "email": newsletter.email,
+                "verification_url": verification_url,
+                "site_name": "Vehicle Booking Site"
+            }
+            
+            # Use template ID for newsletter verification (you'll need to create this template in Brevo)
+            send_email(template_id=2, recipients=recipients, params=params)
+            
+        except Exception as e:
+            print(f"Error sending verification email: {e}")
+
+
+class NewsletterVerifyView(View):
+    """Verify newsletter subscription"""
+    
+    def get(self, request, token):
+        try:
+            # Find newsletter subscription by token
+            newsletter = get_object_or_404(Newsletter, verification_token=token, is_verified=False)
+            
+            # Mark as verified
+            newsletter.is_verified = True
+            newsletter.verified_at = timezone.now()
+            newsletter.save()
+            
+            # Add to Brevo contact list
+            if settings.SEND_EMAIL and settings.SENDINBLUE_API_KEY:
+                attributes = {
+                    "SUBSCRIPTION_DATE": newsletter.created_at.strftime("%Y-%m-%d"),
+                    "VERIFICATION_DATE": newsletter.verified_at.strftime("%Y-%m-%d"),
+                    "SOURCE": "Website Newsletter"
+                }
+                add_contact_to_brevo(newsletter.email, attributes)
+            
+            return JsonResponse({
+                'message': 'Email verified successfully! You are now subscribed to our newsletter.',
+                'status': 200
+            })
+            
+        except Newsletter.DoesNotExist:
+            return JsonResponse({
+                'error': 'Invalid or expired verification link',
+                'message': 'Invalid or expired verification link',
+                'status': 400
+            })
+        except Exception as e:
+            return JsonResponse({
+                'error': str(e),
+                'message': 'Error verifying newsletter subscription',
+                'status': 500
+            })
+
+
+class NewsletterUnsubscribeView(View):
+    """Unsubscribe from newsletter"""
+    
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            
+            if not email:
+                return JsonResponse({'error': 'Email is required','message': 'Email is required','status':400})
+            
+            # Find and delete newsletter subscription
+            try:
+                newsletter = Newsletter.objects.get(email=email)
+                newsletter.delete()
+                
+                # Note: You might want to also remove from Brevo contact list
+                # This would require additional Brevo API call
+                
+                return JsonResponse({'message': 'Successfully unsubscribed from newsletter','status':200})
+            except Newsletter.DoesNotExist:
+                return JsonResponse({'message': 'Email not found in newsletter subscriptions','status':200})
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON','message': 'Invalid JSON','status':400})
+        except Exception as e:
+            return JsonResponse({'error': str(e),'message': 'Error unsubscribing from newsletter','status':500})

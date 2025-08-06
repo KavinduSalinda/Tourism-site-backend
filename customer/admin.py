@@ -50,13 +50,16 @@ class TestimonialAdmin(admin.ModelAdmin):
 
 @admin.register(Newsletter)
 class NewsletterAdmin(admin.ModelAdmin):
-    list_display = ['email', 'created_at']
+    list_display = ['email', 'is_verified', 'created_at', 'verified_at']
     search_fields = ['email']
-    list_filter = ['created_at']
+    list_filter = ['is_verified', 'created_at', 'verified_at']
     ordering = ['-created_at']
+    readonly_fields = ['verification_token', 'verified_at']
     fieldsets = (
         ('Newsletter Information', {
-            'fields': ('email',)
+            'fields': ('email', 'is_verified', 'verification_token')
         }),
-
+        ('Timestamps', {
+            'fields': ('created_at', 'verified_at')
+        }),
     )
