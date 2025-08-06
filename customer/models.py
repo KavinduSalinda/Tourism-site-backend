@@ -31,3 +31,10 @@ class Testimonial(models.Model):
     
     def __str__(self):
         return f"{self.customer_name} from {self.country}"
+
+class Newsletter(models.Model):
+    email = models.EmailField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
