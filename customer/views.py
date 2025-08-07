@@ -8,7 +8,7 @@ import json
 from .models import Customer, Testimonial,Message
 from django.conf import settings
 from utils.email import send_email
-
+import http.client
 
 class TestimonialListView(View):
     """Get all testimonials"""
@@ -75,4 +75,44 @@ class ContactCreateView(View):
             return JsonResponse({'error': str(e),'message': 'Error creating contact message','status':500})
 
 
+class SubscribeNewsletterView(View):
 
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+        if not email:
+            return JsonResponse({'error': 'Email is required'}, status=400)
+
+        headers = {
+            'Content-Type': 'application/json',
+            'api-key': settings.SENDINBLUE_API_KEY, # Make sure this matches your settings.py
+        }
+
+        # 1. ADD THIS REQUIRED FIELD TO THE PAYLOAD
+        payload = {
+            'email': email,
+            'templateId':int(settings.BREVO_DOI_TEMPLATE_ID),
+            'redirectionUrl': settings.BREVO_REDIRECT_URL,
+            'includeListIds': [int(settings.BREVO_CONTACT_LIST_ID)]
+        }
+
+        try:
+            conn = http.client.HTTPSConnection('api.brevo.com')
+            conn.request('POST', '/v3/contacts/doubleOptinConfirmation', json.dumps(payload), headers)
+            res = conn.getresponse()
+            
+            # 2. CHECK FOR ANY 2xx SUCCESS CODE
+            if not (200 <= res.status < 300): # <--- THIS FIXES THE 500 ERROR
+                response_data = res.read().decode()
+                # Raise an exception with details from Brevo's response
+                raise Exception(f"Error: {res.status} - {res.reason}. Response: {response_data}")
+
+            return JsonResponse({'success': 'Confirmation email sent!'}, status=201)
+
+        except Exception as e:
+            print(f"Error calling Brevo API: {e}")
+            return JsonResponse({'error': 'Failed to subscribe. Please try again later.'}, status=500)

@@ -55,7 +55,7 @@ class VehicleDestinationPriceAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'customer_email', 'customer_phone', 'vehicle_name_and_price', 'destination_name', 'no_of_passengers', 'pickup_date', 'pickup_time','pickup_location', 'is_return_trip', 'status', 'created_at']
+    list_display = ['id', 'customer_name', 'customer_email', 'customer_phone', 'vehicle_name_and_price', 'destination_name','pickup_location', 'dropoff_location', 'no_of_passengers', 'pickup_date', 'pickup_time', 'is_return_trip', 'status', 'additional_info', 'created_at']
     list_filter = ['is_return_trip', 'created_at', 'vehicle', 'destination', 'pickup_date', 'status']
     search_fields = ['customer__first_name', 'customer__last_name', 'customer__email', 'customer__phone_no']
     readonly_fields = ['created_at']

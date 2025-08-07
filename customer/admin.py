@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Customer, Testimonial,Message
+from .models import Customer, Testimonial,Message,Newsletter
 
 
 
@@ -58,3 +58,19 @@ class TestimonialAdmin(admin.ModelAdmin):
     def review_preview(self, obj):
         return obj.review[:50] + '...' if len(obj.review) > 50 else obj.review
     review_preview.short_description = 'Review Preview'
+
+@admin.register(Newsletter)
+class NewsletterAdmin(admin.ModelAdmin):
+    list_display = ['email', 'is_verified', 'created_at', 'verified_at']
+    search_fields = ['email']
+    list_filter = ['is_verified', 'created_at', 'verified_at']
+    ordering = ['-created_at']
+    readonly_fields = ['verification_token', 'verified_at']
+    fieldsets = (
+        ('Newsletter Information', {
+            'fields': ('email', 'is_verified', 'verification_token')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'verified_at')
+        }),
+    )

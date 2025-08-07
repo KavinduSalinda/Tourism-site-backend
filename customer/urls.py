@@ -8,4 +8,7 @@ urlpatterns = [
     
     # Contact creation endpoint
     path('api/contact-us/', views.ContactCreateView.as_view(), name='contact_create'),
+
+    #newsletter endpoints
+    path('api/newsletter/', views.SubscribeNewsletterView.as_view(), name='newsletter_create'),
 ] 
