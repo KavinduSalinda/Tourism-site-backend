@@ -159,9 +159,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SEND_EMAIL = config('SEND_EMAIL', default=True, cast=bool)
 SENDINBLUE_API_KEY = config('SENDINBLUE_API_KEY', default='')
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='kavindu10int@gmail.com')
-BREVO_CONTACT_LIST_ID = config('BREVO_CONTACT_LIST_ID', default=1)
-SITE_URL = config('SITE_URL',)
-
+BREVO_DOI_TEMPLATE_ID = config('BREVO_DOI_TEMPLATE_ID')
+BREVO_REDIRECT_URL = config('BREVO_REDIRECT_URL')
+BREVO_CONTACT_LIST_ID = config('BREVO_CONTACT_LIST_ID')
 # Jazzmin Configuration
 JAZZMIN_SETTINGS = {
     "site_title": "Tourism Site Admin",
