@@ -55,7 +55,7 @@ class VehicleDestinationPriceAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'customer_email', 'customer_phone', 'vehicle_name_and_price', 'destination_description','pickup_location', 'dropoff_location', 'no_of_passengers', 'pickup_date', 'pickup_time', 'is_return_trip', 'status', 'additional_info', 'created_at']
+    list_display = ['id', 'customer_name', 'customer_email', 'customer_phone', 'vehicle_name_and_price', 'pickup_location_display', 'dropoff_location_display', 'no_of_passengers', 'pickup_date', 'pickup_time', 'status', 'additional_info', 'created_at_display']
     list_filter = ['is_return_trip', 'created_at', 'vehicle', 'destination', 'pickup_date', 'status']
     search_fields = ['customer__first_name', 'customer__last_name', 'customer__email', 'customer__phone_no']
     readonly_fields = ['created_at']
@@ -91,14 +91,32 @@ class BookingAdmin(admin.ModelAdmin):
             return "No vehicle selected"
     vehicle_name_and_price.short_description = 'Vehicle and Price'
     
-    def destination_description(self, obj):
+    def pickup_location_display(self, obj):
+        """Show pickup location based on return trip logic"""
         if obj.destination:
             if obj.is_return_trip:
-                return f"from {obj.destination.name} to Negombo"
+                return obj.destination.name
             else:
-                return f"to {obj.destination.name}"
-        return "No destination selected"
-    destination_description.short_description = 'Destination'    
+                return "Negombo"
+        else:
+            return obj.pickup_location or ""
+    pickup_location_display.short_description = 'Pickup Location'
+    
+    def dropoff_location_display(self, obj):
+        """Show dropoff location based on return trip logic"""
+        if obj.destination:
+            if obj.is_return_trip:
+                return "Negombo"
+            else:
+                return obj.destination.name
+        else:
+            return obj.dropoff_location or ""
+    dropoff_location_display.short_description = 'Dropoff Location'
+    
+    def created_at_display(self, obj):
+        """Display created_at as 'Booked At'"""
+        return obj.created_at
+    created_at_display.short_description = 'Booked At'    
     def customer_email(self, obj):
         return obj.customer.email if obj.customer else "No customer"
     customer_email.short_description = 'Customer Email'
