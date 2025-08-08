@@ -282,7 +282,7 @@ class BookingCreateView(View):
                 try:
                     price_obj = VehicleDestinationPrice.objects.get(vehicle=vehicle, destination=destination)
                 except VehicleDestinationPrice.DoesNotExist:
-                    return JsonResponse({'error': 'Price not available for this combination','message': 'Price not available for this combination','status':400})
+                    price_obj = None
             
             # Parse pickup_date
             try:
@@ -305,7 +305,10 @@ class BookingCreateView(View):
                 'country': data.get('country', ''),     # Optional
                 'message': data.get('message', '')
             }
-            customer = Customer.objects.create(**customer_data)
+            customer, created = Customer.objects.get_or_create(
+                email=customer_data['email'],
+                defaults=customer_data
+            )
             
             # Create booking with optional fields
             booking_data = {
@@ -334,7 +337,7 @@ class BookingCreateView(View):
             params = {
                 "user_name": booking.customer.first_name + ' ' + booking.customer.last_name,
                 "destination": booking.destination.name if booking.destination else 'Not specified',
-                "vehicle": booking.vehicle.type if booking.vehicle else 'Not specified',
+                "vehicle": booking.vehicle.name if booking.vehicle else 'Not specified',
                 "pickup_date": str(booking.pickup_date),
                 "pickup_time": str(booking.pickup_time),
                 "no_of_passengers": booking.no_of_passengers,
@@ -343,7 +346,7 @@ class BookingCreateView(View):
             }
 
             # send email to admin
-            send_email(template_id=2, recipients=recipients, params=params)
+            send_email(template_id=3, recipients=recipients, params=params)
 
             return JsonResponse({'message': 'Booking created successfully','status':201})
         except json.JSONDecodeError:
