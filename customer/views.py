@@ -45,14 +45,26 @@ class ContactCreateView(View):
                 if field not in data or not data[field]:
                     return JsonResponse({'error': f'{field} is required','message': f'{field} is required','status':400})
             
-            # Create customer with message (using Customer model instead of Contact)
-            customer = Customer.objects.create(
-                first_name=data['first_name'],
-                last_name=data['last_name'],
-                email=data['email'],
-                phone_no=data['phone_no'],
-                country=data['country']
-            )
+            # Check if customer already exists by email
+            try:
+                customer = Customer.objects.get(email=data['email'])
+                # Update customer information if it has changed
+                customer.first_name = data['first_name']
+                customer.last_name = data['last_name']
+                customer.phone_no = data['phone_no']
+                customer.country = data['country']
+                customer.save()
+            except Customer.DoesNotExist:
+                # Create new customer if they don't exist
+                customer = Customer.objects.create(
+                    first_name=data['first_name'],
+                    last_name=data['last_name'],
+                    email=data['email'],
+                    phone_no=data['phone_no'],
+                    country=data['country']
+                )
+            
+            # Create the message
             message = Message.objects.create(
                 customer=customer,
                 message=data['message']
@@ -66,7 +78,7 @@ class ContactCreateView(View):
                 "email": customer.email if customer.email else 'Not specified',
                 "phone_no": customer.phone_no if customer.phone_no else 'Not specified',
             }
-            send_email(template_id=3, recipients=recipients, params=params)
+            send_email(template_id=4, recipients=recipients, params=params)
             
             return JsonResponse({'message': 'Contact message created successfully','status':201})
         except json.JSONDecodeError:
